@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 const cors = require('cors');
 app.use(cors());
-const TOPIC_NAME = 'solicitud-recarga';
+const TOPIC_NAME = 'recarga';
 
 app.post('/recarga', async (req, res) => {
   const {numero, monto} = req.body;

@@ -1,5 +1,5 @@
 {
-  "name": "solicitud-recarga",
+  "name": "recarga",
   "dependencies": {
     "express": "^4.17.1",
     "@google-cloud/pubsub": "^4.0.0"

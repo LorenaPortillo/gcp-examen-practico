@@ -13,14 +13,11 @@ gcloud config set compute/region us-central1
 gcloud services enable cloudfunctions.googleapis.com pubsub.googleapis.com firestore.googleapis.com
 
 # 3. Clone the repo de Proyecto
-git clone https://github.com/Lapayomusica/gcp_proyecto.git
+git clone https://github.com/LorenaPortillo/gcp-examen-practico.git
 
 
 # 4. Crear el Topic del Pub/Sub
 gcloud pubsub topics create recargas
-
-
-
 
 
 4. cd gcp_proyecto/src/frontend
