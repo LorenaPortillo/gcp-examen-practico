@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saldos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saldos
+  template:
+    metadata:
+      labels:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saldos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saldos
+  template:
+    metadata:
+      labels:
+        app: saldos
+    spec:
+      containers:
+        - name: saldos
+          image: gcr.io/grounded-pivot-459800-v1/saldos
+          ports:
+            - containerPort: 8080

@@ -1,0 +1,16 @@
+{
+  "name": "ventas",
+  "version": "1.0.0",
+  "description": "Microservicio que procesa mensajes de PubSub y llama al microservicio de registro de ventas en GKE",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "express": "^4.18.2",
+    "@google-cloud/firestore": "^7.0.0",
+    "@google-cloud/pubsub": "^4.2.5"
+  }
+}
+
