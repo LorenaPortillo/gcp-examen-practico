@@ -1,72 +1,66 @@
-# gcp_proyecto
-GCP proyecto trabajo final
+GCP Proyecto: Plataforma de Recargas de Saldo
+Trabajo final - Arquitectura de microservicios en Google Cloud Platform (GCP).
 
-# 1. Asignacion de proyecto zona y region
-
+1. Configuración Inicial del Proyecto, Zona y Región
+# Selecciona el proyecto de GCP
 gcloud config set project grounded-pivot-459800-v1
 export PROYECTO=$(gcloud config get-value project)
 
+# Define la zona y región por defecto
 gcloud config set compute/zone us-central1-a
 gcloud config set compute/region us-central1
-
-# 2. Activación de APIs
+2. Activación de APIs necesarias
 gcloud services enable cloudfunctions.googleapis.com pubsub.googleapis.com firestore.googleapis.com
-
-# 3. Clone the repo de Proyecto
+3. Clonar el Repositorio del Proyecto
 git clone https://github.com/LorenaPortillo/gcp-examen-practico.git
+cd gcp-examen-practico
 git fetch origin master:master
 git checkout master
-
-# 4. Crear el Topic del Pub/Sub
+4. Crear el Topic de Pub/Sub
 gcloud pubsub topics create recargasv2
+5. Desplegar el Frontend en Cloud Storage (Hosting Gratuito)
+cd src/frontend
 
+# Crear el bucket de almacenamiento
+gsutil mb gs://frontend-ef
 
-# 5. cd gcp_examen-practico/src/frontend
-  
-     # Despliega el frontend en Cloud Storage (hosting gratuito)
+# Subir el archivo del frontend
+gsutil cp index.html gs://frontend-ef
 
-    gsutil mb gs://frontend-ef
-    gsutil cp index.html gs://frontend-ef
-    gsutil web set -m index.html gs://frontend-ef
-    gsutil iam ch allUsers:objectViewer gs://frontend-ef
-    
-
-# 6. Configura el bucket como web
+# Configurar el bucket para servir contenido web estático
 gsutil web set -m index.html gs://frontend-ef
 
- Acceso por:  http://storage.googleapis.com/frontend-ef/index.html
+# Dar permisos públicos de solo lectura
+gsutil iam ch allUsers:objectViewer gs://frontend-ef
+Acceso al frontend:
+http://storage.googleapis.com/frontend-ef/index.html
 
+6. Backend: Recibir Recargas (Cloud Run)
+cd ../backend
 
-# 7. Cloud Function HTTP para recibir recargas desde el frontend al backend
-    cd ../backend
+# (Solo la primera vez) Crear repositorio en Artifact Registry
+gcloud artifacts repositories create microservicios --repository-format=docker --location=us-central1
 
-    Despliegue en Cloud Run:
+# Configurar autenticación Docker para Artifact Registry
+gcloud auth configure-docker us-central1-docker.pkg.dev
 
-    # (Solo la primera vez) Crea el repositorio en Artifact Registry
-    gcloud artifacts repositories create microservicios --repository-format=docker --location=us-central1
-               
-    # Configura autenticación Docker
-     gcloud auth configure-docker us-central1-docker.pkg.dev
+# Instalar dependencias si es necesario
+npm install cors
 
-    # Construye y sube la imagen
-    npm install cors
+# Construir y subir la imagen
+docker build -t backend-ef:latest .
+docker tag backend-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
+docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
 
-    docker build -t backend-ef:latest .
-    docker tag backend-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
-    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
-               
-    # Despliega en Cloud Run
-               gcloud run deploy backend-ef \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest \
-                 --platform managed \
-                 --region us-central1 \
-                 --allow-unauthenticated
-
-# 8. Crea Subscripcion
-
+# Desplegar en Cloud Run
+gcloud run deploy backend-ef \
+  --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+7. Crear una Suscripción de Pub/Sub
 gcloud pubsub subscriptions create recargasv2 --topic=recargasv2
-
-# 8. Cloud Function backend (procesa la recarga y guarda en Firestore)
+8. Microservicio de Recarga: Procesamiento y Almacenamiento en Firestore (Cloud Run)
 cd ../recarga
 
 docker build -t recarga-ef:latest .
@@ -74,260 +68,74 @@ docker tag recarga-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1
 docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest
 
 gcloud run deploy recarga-ef \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest \
-                 --platform managed \
-                 --region us-central1 \
-                 --allow-unauthenticated
-
-
-7. cd ../ventas
-    Construir y subir la imagen a Artifact Registry:
-
-docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest .
-docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest
-
- gcloud run deploy registro-venta \
-        --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest \
-        --platform managed \
-        --region us-central1 \
-        --allow-unauthenticated
-
-
-    gcloud container clusters create mi-cluster  --zone=us-central1-a  --num-nodes=1  --machine-type=e2-medium
-    gcloud container clusters get-credentials mi-cluster --zone=us-central1-a
-
-    kubectl apply -f registro-venta-deployment.yaml
-    kubectl apply -f registro-venta-ingress.yaml         
-
-    kubectl get ingress o. kubectl get services
-    kubectl get nodes -o wide
-
+  --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+9. Actualizar Roles del Service Account
+Asegúrate de que el Service Account tenga permisos de lectura en Artifact Registry:
 
 gcloud projects add-iam-policy-binding grounded-pivot-459800-v1 \
   --member="serviceAccount:microservicios-auth@grounded-pivot-459800-v1.iam.gserviceaccount.com" \
   --role="roles/artifactregistry.reader"
+10. Microservicio de Ventas en GKE y Cloud Run
+cd ../ventas
 
-comprobar que el pod este "Running"
+# Construir y subir la imagen
+docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest .
+docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest
+
+# Desplegar en Cloud Run (opcional)
+gcloud run deploy registro-venta \
+  --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+
+# Crear el clúster de GKE
+gcloud container clusters create mi-cluster --zone=us-central1-a --num-nodes=1 --machine-type=e2-medium
+gcloud container clusters get-credentials mi-cluster --zone=us-central1-a
+
+# Desplegar recursos en GKE
+kubectl apply -f registro-venta-deployment.yaml
+kubectl apply -f registro-venta-ingress.yaml
+
+# Verificar estado
+kubectl get ingress
+kubectl get services
+kubectl get nodes -o wide
 kubectl get pods
+Obtener la IP del Ingress y probar el servicio:
 
-Obtener IPs del Ingress:
 kubectl get ingress
 
-
-
-curl -X POST http://35.186.228.131/registrar-venta \
+curl -X POST http://[EXTERNAL_IP]/registrar-venta \
   -H "Content-Type: application/json" \
   -d '{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}'
+11. Microservicio de Saldo en GKE y Cloud Run
+cd ../saldo
 
-  curl -X POST http://35.190.73.168/ventas \
-  -H "Content-Type: application/json" \
-  -d '{"numero":"5512345678","monto":100,"fecha":"2024-07-10T12:00:00Z"}'
-
-
-8. cd ../microservicio_de_actualizacion_de_saldo
-
-    docker build -t actualizar-saldo:latest .
-    docker tag actualizar-saldo:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest
-    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest
-
-    gcloud run deploy actualizar-saldo \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest \
-                 --platform managed \
-                 --region us-central1 \
-                 --allow-unauthenticated
-
-
-
-    Despliega en GKE
-    kubectl apply -f actualizar-saldo-deployment.yaml
-    kubectl apply -f actualizar-saldo-service.yaml
-    kubectl apply -f actualizar-saldo-ingress.yaml
-
-
-    kubectl apply -f actualizar-saldo-deployment.yaml
-    kubectl apply -f plataforma-recargas-ingress.yaml  # solo si es nuevo o cambió
-    Obtén la IP pública (EXTERNAL-IP):
-
-    kubectl get ingress
-    Prueba el servicio
-
-https://registro-venta-411888293665.us-central1.run.app
-
-    curl -X POST https://registro-venta-411888293665.us-central1.run.app/actualizar-saldo \
-      -H "Content-Type: application/json" \
-      -d '{"numero":"5551234567","monto":50}'
-
-
-
-docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest .
+docker build -t actualizar-saldo:latest .
+docker tag actualizar-saldo:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest
 docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest
 
-Despliega en GKE qu e ya fue creado en el punto anterior:
+# Desplegar en Cloud Run
+gcloud run deploy actualizar-saldo \
+  --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+
+# Desplegar en GKE
 kubectl apply -f actualizar-saldo-deployment.yaml
-kubectl apply -f plataforma-recargas-ingress.yaml  # solo si es nuevo o cambió
+kubectl apply -f actualizar-saldo-service.yaml
+kubectl apply -f actualizar-saldo-ingress.yaml
 
- 
- kubectl get pods
- kubectl get svc
- Obtén la IP pública (EXTERNAL-IP):
- kubectl get ingress
+# Verificar estado
+kubectl get pods
+kubectl get ingress
+Probar el endpoint de saldo:
 
-Prueba el servicio
 curl -X POST http://[EXTERNAL_IP]/actualizar-saldo \
   -H "Content-Type: application/json" \
   -d '{"numero":"5551234567","monto":50}'
-
-
-
-
-
-9. Otros detalles técnicos:
-    **Pasos básicos:**
-       1. **Crea una cuenta de servicio de Google Cloud:**
-          ```sh
-          gcloud iam service-accounts create microservicios-auth
-          ```
-       2. **Dale permisos solo necesarios (ejemplo: acceso a Firestore):**
-          ```sh
-          gcloud projects add-iam-policy-binding TU_PROYECTO \
-            --member="serviceAccount:microservicios-auth@TU_PROYECTO.iam.gserviceaccount.com" \
-            --role="roles/datastore.user"
-
-gcloud projects add-iam-policy-binding grounded-pivot-459800-v1 \
-   --member="serviceAccount:microservicios-auth@grounded-pivot-459800-v1.iam.gserviceaccount.com" \
-            --role="roles/datastore.user"
-
-
- gcloud container node-pools create nuevo-default-pool \
-  --cluster=mi-cluster \
-  --service-account=microservicios-auth@grounded-pivot-459800-v1.iam.gserviceaccount.com \
-  --zone=us-central1-a \
-  --num-nodes=2 \
-  --machine-type=e2-medium     
-
-Para borrar el cluster que no tenia service Account
-  gcloud container node-pools delete default-pool --cluster=mi-cluster --zone=us-central1-a
-
-# Agrega otros roles según necesidad
-
-          ```
-       3. **Habilita Workload Identity en tu clúster:**
-          ```sh
-          gcloud container clusters update TU_CLUSTER \
-            --workload-pool=TU_PROYECTO.svc.id.goog
-          ```
-       4. **Crea un ServiceAccount de Kubernetes vinculado:**
-          ```yaml
-          apiVersion: v1
-          kind: ServiceAccount
-          metadata:
-            name: k8s-firestore
-            annotations:
-              iam.gke.io/gcp-service-account: microservicios-auth@TU_PROYECTO.iam.gserviceaccount.com
-          ```
-       5. **Asigna este ServiceAccount a tus pods en el deployment:**
-          ```yaml
-          spec:
-            serviceAccountName: k8s-firestore
-          ```
-       6. **Enlaza las identidades:**
-          ```sh
-          gcloud iam service-accounts add-iam-policy-binding microservicios-auth@TU_PROYECTO.iam.gserviceaccount.com \
-            --role roles/iam.workloadIdentityUser \
-            --member "serviceAccount:TU_PROYECTO.svc.id.goog[default/k8s-firestore]"
-
-    ## 2. **Observabilidad: Cloud Logging y Monitoring**
-
-    **Por defecto:**
-    - **Todos los logs** de tus pods, Cloud Functions y Cloud Run se envían automáticamente a **Cloud Logging**.
-    - **Métricas** de uso, errores y tráfico se envían a **Cloud Monitoring**.
-
-    **¿Qué debes hacer?**
-    - Añade logs personalizados en tus apps usando `console.log` (Node.js) o el equivalente en otros lenguajes.
-    - Puedes crear dashboards y alertas en Cloud Monitoring.
-
-    **Accede desde la consola:**
-    - [Cloud Logging](https://console.cloud.google.com/logs)
-    - [Cloud Monitoring](https://console.cloud.google.com/monitoring)
-
-    ## 3. **Uso eficiente del nivel gratuito**
-
-    - **GKE Autopilot:** 1 clúster gratis, suficiente para microservicios pequeños. No uses nodos grandes ni cargas pesadas.
-    - **Firestore:** Hasta 1GB de almacenamiento gratis (usa documentos compactos).
-    - **Cloud Functions:** Hasta 2 millones de invocaciones gratis (usa para funciones de backend asíncrono).
-    - **Pub/Sub:** Hasta 10GB de mensajes gratis.
-    - **Cloud Run:** Hasta 2 millones de invocaciones gratis y 360,000 GB-segundos/mes.
-
-    **Tips:**
-    - Elimina recursos que no uses.
-    - Usa colecciones separadas en Firestore en vez de muchos proyectos.
-    - Observa el uso en la consola de facturación.
-    - Evita loops automáticos y verifica que tus triggers Pub/Sub o Cloud Functions no generen invocaciones inesperadas.
-
-    ---
-
-    ## 4. **Resumen de buenas prácticas**
-
-    - **Desacoplamiento:** Usa Pub/Sub y microservicios independientes.
-    - **Seguridad:** Workload Identity, no claves embebidas.
-    - **Escalabilidad y resiliencia:** GKE Autopilot, Cloud Functions, Cloud Run.
-    - **Observabilidad:** Usa Cloud Logging y Monitoring, crea alertas si quieres.
-    - **Ahorro:** Mantente en la capa gratuita, revisa consumo en la consola.
-
-
-
-/
-        ├── frontend/
-        │   └── index.html
-├── cloud-functions/
-        │   ├── recargaRequest/
-        │   └── procesarRecarga/
-        ├── registro-venta/
-        │   ├── index.js
-│   ├── Dockerfile
-│   └── deployment.yaml
-├── actualizar-saldo/
-        │   ├── index.js
-│   ├── Dockerfile
-│   └── deployment.yaml
-├── docs/
-        │   └── diagrama.png
-└── README.md
-
-
-
-
-
-const {PubSub} = require('@google-cloud/pubsub');
-const {Firestore} = require('@google-cloud/firestore');
-const express = require('express');
- 
-const pubsub = new PubSub();
-const firestore = new Firestore();
-const subscriptionName = 'recarga-run-sub';
- 
-const app = express();
-const PORT = process.env.PORT || 8080;
- 
-app.get('/', (req, res) => res.send('OK'));
-app.listen(PORT, () => console.log(`Healthcheck en ${PORT}`));
- 
-function listenMessages() {
-  const subscription = pubsub.subscription(subscriptionName);
-  subscription.on('message', async (message) => {
-    try {
-      const data = message.json || JSON.parse(Buffer.from(message.data, 'base64').toString());
-      await firestore.collection('recargas').add({
-        numero: data.numero,
-        monto: data.monto,
-        fecha: data.fecha || new Date().toISOString(),
-        status: 'procesada'
-      });
-      console.log(`Recarga procesada para ${data.numero} por ${data.monto}`);
-      message.ack();
-    } catch (err) {
-      console.error('Error procesando mensaje:', err);
-    }
-  });
-}
-listenMessages();
