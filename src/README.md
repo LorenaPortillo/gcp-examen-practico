@@ -29,13 +29,12 @@ gcloud pubsub topics create recargasv2
     gsutil cp index.html gs://frontend-ef
     gsutil web set -m index.html gs://frontend-ef
     gsutil iam ch allUsers:objectViewer gs://frontend-ef
-
-    Acceso por:  http://storage.googleapis.com/frontend-ef/index.html
     
 
 # 6. Configura el bucket como web
 gsutil web set -m index.html gs://frontend-ef
-gsutil web set -m index.html gs://frontend-ef
+
+ Acceso por:  http://storage.googleapis.com/frontend-ef/index.html
 
 
 # 7. Cloud Function HTTP para recibir recargas desde el frontend al backend
@@ -50,12 +49,11 @@ gsutil web set -m index.html gs://frontend-ef
      gcloud auth configure-docker us-central1-docker.pkg.dev
 
     # Construye y sube la imagen
+    npm install cors
+
     docker build -t backend-ef:latest .
     docker tag backend-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
     docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
-
-    gcloud builds submit --tag gcr.io/grounded-pivot-459800-v1/backend-ef
-  
                
     # Despliega en Cloud Run
                gcloud run deploy backend-ef \
@@ -67,14 +65,14 @@ gsutil web set -m index.html gs://frontend-ef
 # 8. Cloud Function backend (procesa la recarga y guarda en Firestore)
 cd ../recarga
 
- gcloud pubsub subscriptions create recargasv2 --topic=recargasv2
+gcloud pubsub subscriptions create recargasv2 --topic=recargasv2
 
-docker build -t recarga-firestore:latest .
-docker tag recarga-firestore:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-firestore:latest
-docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-firestore:latest
+docker build -t recarga-ef:latest .
+docker tag recarga-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest
+docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest
 
-               gcloud run deploy recarga-firestore \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-firestore:latest \
+               gcloud run deploy recarga-ef \
+                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest \
                  --platform managed \
                  --region us-central1 \
                  --allow-unauthenticated
