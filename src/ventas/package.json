@@ -1,8 +1,7 @@
 {
-  "name": "ventas",
+  "name": "ventas-ef",
   "version": "1.0.0",
   "description": "Microservicio que procesa mensajes de PubSub y llama al microservicio de registro de ventas en GKE",
-  "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },

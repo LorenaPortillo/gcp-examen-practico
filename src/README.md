@@ -62,57 +62,33 @@ gsutil web set -m index.html gs://frontend-ef
                  --region us-central1 \
                  --allow-unauthenticated
 
-# 8. Cloud Function backend (procesa la recarga y guarda en Firestore)
-cd ../recarga
+# 8. Crea Subscripcion
 
 gcloud pubsub subscriptions create recargasv2 --topic=recargasv2
+
+# 8. Cloud Function backend (procesa la recarga y guarda en Firestore)
+cd ../recarga
 
 docker build -t recarga-ef:latest .
 docker tag recarga-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest
 docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest
 
-               gcloud run deploy recarga-ef \
+gcloud run deploy recarga-ef \
                  --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-ef:latest \
                  --platform managed \
                  --region us-central1 \
                  --allow-unauthenticated
- 
-
-   
-
-----------------------------------------
-gcloud builds submit --tag gcr.io/grounded-pivot-459800-v1/recarga-firestore-handler
-
-gcloud run deploy recarga-firestore-handler \
-  --image gcr.io/grounded-pivot-459800-v1/recarga-firestore-handler \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-
-#Crear la Subscripcion
-gcloud pubsub subscriptions create recarga-firestore-handler-sub \
-  --topic=recargas \
-  --push-endpoint=https://recarga-firestore-handler-XXXXXXX-uc.a.run.app/ \
-  --push-auth-service-account=YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
 
 
-  gcloud pubsub subscriptions create recarga-run-sub --topic=recargas
-
-
-  Ojo poner en el codigo de este microservicio 
-  const firestore = new Firestore({ projectId: 'grounded-pivot-459800-v1' });
-const pubsub = new PubSub({ projectId: 'grounded-pivot-459800-v1' });
-
-
-7. cd ../microservicio_registro_de_ventas
+7. cd ../ventas
     Construir y subir la imagen a Artifact Registry:
 
-    docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest .
-    docker tag registro-venta:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest
-    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest
+    docker build -t ventas-ef:latest .
+    docker tag ventas-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
+    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
 
-    kubectl apply -f registro-venta-deployment.yaml
-    kubectl apply -f registro-venta-ingress.yaml
+    kubectl apply -f ventas-deployment.yaml
+    kubectl apply -f ventas-ingress.yaml
 
     kubectl get ingress
 

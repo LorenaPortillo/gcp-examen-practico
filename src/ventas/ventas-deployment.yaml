@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ventas
+  name: ventas-ef
 spec:
   replicas: 1
   selector:
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: ventas
-          image: us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas:latest
+          image: us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
           ports:
             - containerPort: 8080
 ---

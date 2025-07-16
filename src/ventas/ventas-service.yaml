@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ventas
+  name: ventas-ef
 spec:
   selector:
-    app: ventas
+    app: ventas-ef
   ports:
     - protocol: TCP
       port: 80
