@@ -1,31 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ventas-ef
+  name: registro-venta
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ventas
+      app: registro-venta
   template:
     metadata:
       labels:
-        app: ventas
+        app: registro-venta
     spec:
       containers:
-        - name: ventas
-          image: us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
+        - name: registro-venta
+          image: us-central1-docker.pkg.dev/MIPROYECTO/microservicios/registro-venta:latest
           ports:
             - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ventas
+  name: registro-venta
 spec:
   selector:
-    app: ventas
+    app: registro-venta
   ports:
     - protocol: TCP
       port: 80
       targetPort: 8080
+      
