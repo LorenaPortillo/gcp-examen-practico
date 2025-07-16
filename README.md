@@ -1,4 +1,4 @@
-GCP Proyecto: Plataforma de Recargas y Ventas
+GCP Proyecto: Plataforma de Recargas de Saldo
 Trabajo final - Arquitectura de microservicios en Google Cloud Platform (GCP).
 
 1. Configuración Inicial del Proyecto, Zona y Región
