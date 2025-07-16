@@ -83,45 +83,45 @@ gcloud run deploy recarga-ef \
 7. cd ../ventas
     Construir y subir la imagen a Artifact Registry:
 
-    docker build -t ventas-ef:latest .
-    docker tag ventas-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
-    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
+docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest .
+docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest
 
-    kubectl apply -f ventas-ef-deployment.yaml
-    kubectl apply -f ventas-ef-ingress.yaml
+ gcloud run deploy registro-venta \
+        --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest \
+        --platform managed \
+        --region us-central1 \
+        --allow-unauthenticated
 
-    gcloud run deploy ventas-ef \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest \
-                 --platform managed \
-                 --region us-central1 \
-                 --allow-unauthenticated
+
+    gcloud container clusters create mi-cluster  --zone=us-central1-a  --num-nodes=1  --machine-type=e2-medium
+    gcloud container clusters get-credentials mi-cluster --zone=us-central1-a
+
+    kubectl apply -f registro-venta-deployment.yaml
+    kubectl apply -f registro-venta-ingress.yaml         
 
     kubectl get ingress o. kubectl get services
-
     kubectl get nodes -o wide
 
-https://registro-venta-411888293665.us-central1.run.app/registrar-venta
-{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}
+
+gcloud projects add-iam-policy-binding grounded-pivot-459800-v1 \
+  --member="serviceAccount:microservicios-auth@grounded-pivot-459800-v1.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.reader"
+
+comprobar que el pod este "Running"
+kubectl get pods
+
+Obtener IPs del Ingress:
+kubectl get ingress
 
 
-curl -X POST 35.186.228.131/registrar-venta \
+
+curl -X POST http://35.186.228.131/registrar-venta \
   -H "Content-Type: application/json" \
   -d '{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}'
-    
 
-curl -X POST https://registro-venta-411888293665.us-central1.run.app/registrar-venta \
-      -H "Content-Type: application/json" \
-      -d '{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}'
-
-
-    curl -X POST http://35.186.228.131/registrar-venta \
+  curl -X POST http://35.190.73.168/ventas \
   -H "Content-Type: application/json" \
   -d '{"numero":"5512345678","monto":100,"fecha":"2024-07-10T12:00:00Z"}'
-
-curl http://registro-venta-5745b7c864-kwn2v/registrar-venta \
-  -H "Content-Type: application/json" \
-  -d '{"numero":"5512345678","monto":100,"fecha":"2024-07-10T12:00:00Z"}'
-
 
 
 8. cd ../microservicio_de_actualizacion_de_saldo
@@ -156,6 +156,30 @@ https://registro-venta-411888293665.us-central1.run.app
     curl -X POST https://registro-venta-411888293665.us-central1.run.app/actualizar-saldo \
       -H "Content-Type: application/json" \
       -d '{"numero":"5551234567","monto":50}'
+
+
+
+docker build -t us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest .
+docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/actualizar-saldo:latest
+
+Despliega en GKE qu e ya fue creado en el punto anterior:
+kubectl apply -f actualizar-saldo-deployment.yaml
+kubectl apply -f plataforma-recargas-ingress.yaml  # solo si es nuevo o cambió
+
+ 
+ kubectl get pods
+ kubectl get svc
+ Obtén la IP pública (EXTERNAL-IP):
+ kubectl get ingress
+
+Prueba el servicio
+curl -X POST http://[EXTERNAL_IP]/actualizar-saldo \
+  -H "Content-Type: application/json" \
+  -d '{"numero":"5551234567","monto":50}'
+
+
+
+
 
 9. Otros detalles técnicos:
     **Pasos básicos:**

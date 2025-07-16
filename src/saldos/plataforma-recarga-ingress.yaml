@@ -1,18 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: saldos-ingress
+  name: plataforma-recargas-ingress
   annotations:
     kubernetes.io/ingress.class: "gce"
 spec:
   rules:
     - http:
         paths:
-          - path: /saldos
+          - path: /actualizar-saldo
             pathType: Prefix
             backend:
               service:
-                name: saldos
+                name: actualizar-saldo
                 port:
                   number: 80
-
