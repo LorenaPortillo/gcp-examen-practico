@@ -2,6 +2,7 @@
   "name": "backend-ef",
   "dependencies": {
     "express": "^4.17.1",
-    "@google-cloud/pubsub": "^4.0.0"
+    "@google-cloud/pubsub": "^4.0.0",
+    "cors":"^2.8.5"
   }
 }
