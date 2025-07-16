@@ -87,52 +87,18 @@ gcloud run deploy recarga-ef \
     docker tag ventas-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
     docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest
 
-    kubectl apply -f ventas-deployment.yaml
-    kubectl apply -f ventas-ingress.yaml
+    kubectl apply -f ventas-ef-deployment.yaml
+    kubectl apply -f ventas-ef-ingress.yaml
 
-    kubectl get ingress
-
-    gcloud run deploy registro-venta \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta:latest \
+    gcloud run deploy ventas-ef \
+                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/ventas-ef:latest \
                  --platform managed \
                  --region us-central1 \
                  --allow-unauthenticated
 
-Ojo *********** - mios
-gcloud container clusters create mi-cluster \
-  --zone us-central1-a \
-  --num-nodes=1 \
-  --machine-type=e2-micro
-
-
-** Artifact Regisrty
-gcloud builds submit --tag us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/registro-venta
-** Container Registry
-docker build -t gcr.io/grounded-pivot-459800-v1/registro-venta:latest .
-docker push gcr.io/grounded-pivot-459800-v1/registro-venta:latest
-
-**Verifica la imagen
-gcloud container images list-tags gcr.io/grounded-pivot-459800-v1/registro-venta
-
-
-gcloud container clusters get-credentials mi-cluster --zone us-central1-a --project grounded-pivot-459800-v1
-
-***************
-    Comandos de despliegue de .yaml
-kubectl apply -f registro-venta-deployment.yaml
-kubectl apply -f registro-venta-service.yaml
-kubectl apply -f registro-venta-ingress.yaml
-
-
-    Cuando el Ingress esté disponible, obtén la IP con:
-
     kubectl get ingress o. kubectl get services
 
     kubectl get nodes -o wide
-
-
-
-    Y prueba el servicio (por ejemplo, con curl):
 
 https://registro-venta-411888293665.us-central1.run.app/registrar-venta
 {"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}
@@ -143,7 +109,7 @@ curl -X POST 35.186.228.131/registrar-venta \
   -d '{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}'
     
 
-    curl -X POST https://registro-venta-411888293665.us-central1.run.app/registrar-venta \
+curl -X POST https://registro-venta-411888293665.us-central1.run.app/registrar-venta \
       -H "Content-Type: application/json" \
       -d '{"numero":"5551234567","monto":50,"fecha":"2024-07-10T12:00:00Z"}'
 
