@@ -3,7 +3,8 @@ const {Firestore} = require('@google-cloud/firestore');
 const express = require('express');
 const pubsub = new PubSub();
 const firestore = new Firestore();
-const subscriptionName = 'recarga-run-sub';
+const subscriptionName = 'recargasv2';
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 app.get('/', (req, res) => res.send('OK'));
