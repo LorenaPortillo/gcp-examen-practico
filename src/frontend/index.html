@@ -4,14 +4,76 @@
     <meta charset="UTF-8">
     <title>Plataforma de Recarga Telefónica</title>
     <style>
-        body { font-family: sans-serif; margin: 2em; }
-        form { max-width: 300px; margin: auto; }
-        label { display: block; margin-top: 1em; }
-        button { margin-top: 1em; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 2em;
+            color: #2261a9;
+        }
+        form {
+            max-width: 350px;
+            margin: 2em auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 2em 2em 1em 2em;
+            box-shadow: 0 4px 20px rgba(34, 97, 169, 0.08);
+            border: 1px solid #e3e9f2;
+        }
+        label {
+            display: block;
+            margin-top: 1.5em;
+            color: #2261a9;
+            font-weight: 500;
+        }
+        input[type="tel"],
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75em;
+            margin-top: 0.5em;
+            border: 1px solid #bfcbe2;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #f7fafd;
+            transition: border 0.2s;
+        }
+        input:focus {
+            border: 1.5px solid #2261a9;
+            outline: none;
+            background: #fff;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 0.8em;
+            margin-top: 2em;
+            background: #2261a9;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #174a7e;
+        }
+        #mensaje {
+            text-align: center;
+            margin-top: 2em;
+            font-size: 1.1em;
+            color: #2261a9;
+            min-height: 2em;
+        }
     </style>
 </head>
 <body>
-<h2>Recargar de saldo</h2>
+<h2>Recarga de saldo</h2>
 <form id="recargaForm">
     <label>
         Número telefónico:
