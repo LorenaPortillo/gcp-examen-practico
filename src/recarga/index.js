@@ -6,7 +6,7 @@ const express = require('express');
 const firestore = new Firestore({ projectId: 'grounded-pivot-459800-v1' });
 const pubsub = new PubSub({ projectId: 'grounded-pivot-459800-v1' });
 
-const subscriptionName = 'recarga-firestore';
+const subscriptionName = 'recargav2';
  
 const app = express();
 const PORT = process.env.PORT || 8080;
