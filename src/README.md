@@ -18,84 +18,56 @@ git fetch origin master:master
 git checkout master
 
 # 4. Crear el Topic del Pub/Sub
-gcloud pubsub topics create recargas
+gcloud pubsub topics create recargasv2
 
 
-4. cd gcp_proyecto/src/frontend
-     Frontend simple (HTML + JS) (NOTA: ESTO DEBE ESTAR ARRIBA REVISAR)
+# 5. cd gcp_examen-practico/src/frontend
+  
+     # Despliega el frontend en Cloud Storage (hosting gratuito)
 
-     Despliega el frontend en Cloud Storage (hosting gratuito)
+    gsutil mb gs://frontend-ef
+    gsutil cp index.html gs://frontend-ef
+    gsutil web set -m index.html gs://frontend-ef
+    gsutil iam ch allUsers:objectViewer gs://frontend-ef
 
-     gsutil mb gs://$PROJECT_ID-bucket-html-01
-     gsutil cp index.html gs://$PROJECT_ID-bucket-html-01
-     gsutil web set -m index.html gs://$PROJECT_ID-bucket-html-01
-     gsutil iam ch allUsers:objectViewer gs://$PROJECT_ID-bucket-html-01
-
-
-    gsutil mb gs://mi-frontend-recargas
-    gsutil cp index.html gs://mi-frontend-recargas   
-    gsutil web set -m index.html gs://mi-frontend-recargas
-    gsutil iam ch allUsers:objectViewer gs://mi-frontend-recargas
-
-
-
-curl -X POST https://recarga-backend-411888293665.us-central1.run.app/recarga \
-  -H "Content-Type: application/json" \
-  -d '{"numero": "5512345678", "monto": 100}'
+    Acceso por:  http://storage.googleapis.com/frontend-ef/index.html
     
 
-# Configura el bucket como web
-gsutil web set -m index.html gs://mi-frontend-recargas
-
-gsutil web set -m index.html gs://mi-frontend-recargas
-
-
-     Accede por:
-     http://storage.googleapis.com/$PROJECT_ID-bucket-html-01/index.html
-
- http://storage.googleapis.com/mi-frontend-recargas/index.html
+# 6. Configura el bucket como web
+gsutil web set -m index.html gs://frontend-ef
+gsutil web set -m index.html gs://frontend-ef
 
 
-5. Cloud Function HTTP para recibir recargas (frontend → backend)
-    cd ../cloud-functions_recarga_request
+# 7. Cloud Function HTTP para recibir recargas desde el frontend al backend
+    cd ../backend
 
     Despliegue en Cloud Run:
-    Construye y sube la imagen
 
-    gcloud builds submit --tag gcr.io/$PROJECT_ID/recarga-backend
-    gcloud builds submit --tag gcr.io/grounded-pivot-459800-v1/recarga-backend
+    # (Solo la primera vez) Crea el repositorio en Artifact Registry
+    gcloud artifacts repositories create microservicios --repository-format=docker --location=us-central1
+               
+    # Configura autenticación Docker
+     gcloud auth configure-docker us-central1-docker.pkg.dev
 
+    # Construye y sube la imagen
+    docker build -t backend-ef:latest .
+    docker tag backend-ef:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
+    docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest
 
-    Despliega en Cloud Run con AHORA AL PARECER TIENE QUE SER CON DOCKERFILE POR LO QUE SE DEBE AGREGAR EL Dockerfile y seguir estos pasos:
-               Dockerfile
-                    FROM node:20
-                    WORKDIR /usr/src/app
-                    COPY package*.json ./
-                    RUN npm install
-                    COPY . .
-                    CMD ["node", "index.js"]
-               # (Solo la primera vez) Crea el repositorio en Artifact Registry
-               gcloud artifacts repositories create microservicios --repository-format=docker --location=us-central1
+    gcloud builds submit --tag gcr.io/grounded-pivot-459800-v1/backend-ef
+  
                
-               # Configura autenticación Docker
-               gcloud auth configure-docker us-central1-docker.pkg.dev
-               
-               # Construye y sube la imagen
-               docker build -t recarga-backend:latest .
-               docker tag recarga-backend:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-backend:latest
-               docker push us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-backend:latest
-               
-               # Despliega en Cloud Run
-               gcloud run deploy recarga-backend \
-                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-backend:latest \
+    # Despliega en Cloud Run
+               gcloud run deploy backend-ef \
+                 --image us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/backend-ef:latest \
                  --platform managed \
                  --region us-central1 \
                  --allow-unauthenticated
 
-6. Cloud Function backend (procesa la recarga y guarda en Firestore)
-cd ../microservicio_procesar_recarga
+# 8. Cloud Function backend (procesa la recarga y guarda en Firestore)
+cd ../recarga
 
- gcloud pubsub subscriptions create recarga-run-sub-a --topic=recargas
+ gcloud pubsub subscriptions create recargasv2 --topic=recargasv2
 
 docker build -t recarga-firestore:latest .
 docker tag recarga-firestore:latest us-central1-docker.pkg.dev/grounded-pivot-459800-v1/microservicios/recarga-firestore:latest
