@@ -12,13 +12,13 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: ventas
+                name: ventas-ef
                 port:
                   number: 80
           - path: /ventas
             pathType: Prefix
             backend:
               service:
-                name: ventas
+                name: ventas-ef
                 port:
                   number: 80
